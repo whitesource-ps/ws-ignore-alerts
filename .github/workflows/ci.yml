@@ -28,7 +28,7 @@ jobs:
       - name: Zip release
         uses: papeloto/action-zip@v1
         with:
-          files: requirements.txt LICENSE README.md CLA.md ws_ginore_alerts/
+          files: ws_ignore_alerts.py requirements.txt LICENSE README.md CLA.md config/
           dest: ws_ginore_alerts.zip
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')
