@@ -14,11 +14,13 @@
 ```
 
 # Ignore Future Alerts 
-**ws_ignore_alerts.py** is a utility for ignoring alerts in the new project, accordingly to the already ignored alerts 
-in the previous project, which is a version of the same WS product.  
-As an example, there is a WS product where each WS project is a version. After each WS scan a new project will be created and 
-once it is done the utility can be launched as part of the pipeline. All ignored alerts will be pulled from the last updated 
-project, and the same alerts will be ignored in the new project.
+**ws_ignore_alerts.py** is a utility for ignoring alerts in the newly created WS Project, which is a version of the same customer's product, 
+according to the already ignored alerts in the baseline WS Project. After each WS scan a new WS Project will be created and
+once it is done the utility can be launched as part of the pipeline.
+As an example, there are two options for use:
+- using baseline project defined by the user - baselineProjectToken and projectName (projectVersion) are required parameters.
+- using default baseline project which is the last updated project in the particular WS Product.
+The alerts will be pulled from the baseline project, and the same alerts will be ignored in the new project.
 
 ### Supported Operating Systems
 - Linux (Bash): CentOS, Debian, Ubuntu, RedHat
@@ -36,7 +38,8 @@ project, and the same alerts will be ignored in the new project.
 
 ### Execution
 From the command line:
-- `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken`
+- `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken -b $baselineProjectToken -n 
+  $projectName -v $projectVersion` 
 
 Using a config file:
 - `python ws_ignore_alerts.py`
@@ -46,21 +49,28 @@ for the installation and the execution (`pip3` and `python3` respectively)
 
 ### Configuration Parameters
 ```
-=========================================================================================================
-| Group         | Parameter      | Description                                                          |
-=========================================================================================================
-| DEFAULT       | WsUrl          | WhiteSource server URL. Can be found under the 'Integrate' tab in    |   
-|               |                | your WhiteSource organization                                        |
----------------------------------------------------------------------------------------------------------
-| DEFAULT       | UserKey        | WhiteSource User Key. Can be found under the 'Profile' section in    |
-|               |                | your WhiteSource organization.                                       |
----------------------------------------------------------------------------------------------------------
-| DEFAULT       | OrgToken       | WhiteSource API Key. Can be found under the 'Integrate' tab in your  |
-|               |                | your WhiteSource organization.                                       |
----------------------------------------------------------------------------------------------------------
-| DEFAULT       | ProductToken   | WhiteSource Product Token. Can be found under the 'Integrate' tab    |  
-|               |                | in your WhiteSource organization.                                    |
-=========================================================================================================
+===============================================================================================================
+| Group         | Parameter            | Description                                                          |
+===============================================================================================================
+| DEFAULT       | wsUrl                | WhiteSource server URL. Can be found under the 'Integrate' tab in    |   
+|               |                      | your WhiteSource organization.                                       |
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | userKey              | WhiteSource User Key. Can be found under the 'Profile' section in    |
+|               |                      | your WhiteSource organization.                                       |
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | orgToken             | WhiteSource API Key. Can be found under the 'Integrate' tab in your  |
+|               |                      | your WhiteSource organization.                                       |
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | productToken         | WhiteSource Product Token. Can be found under the 'Integrate' tab    |  
+|               |                      | in your WhiteSource organization.                                    |
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | baselineProjectToken | WhiteSource Project Token that has already ignored alerts. Can be    |  
+|               |                      | found under the 'Integrate' tab in your WhiteSource organization.    |
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | projectName          | The name of the new WhiteSource Project defined by the user.         |  
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | projectVersion       | The version of the new WhiteSource Project defined by the user.      |  
+===============================================================================================================
 ```
 
 ### Author

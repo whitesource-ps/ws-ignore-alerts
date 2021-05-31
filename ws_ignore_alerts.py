@@ -25,10 +25,13 @@ class Configuration:
         config.optionxform = str
         config.read('./config/params.config')
         # WS Settings
-        self.url = config.get('DEFAULT', 'WsUrl')
-        self.user_key = config.get('DEFAULT', 'UserKey')
-        self.org_token = config.get('DEFAULT', 'OrgToken')
-        self.product_token = config.get('DEFAULT', 'ProductToken')
+        self.url = config.get('DEFAULT', 'wsUrl')
+        self.user_key = config.get('DEFAULT', 'userKey')
+        self.org_token = config.get('DEFAULT', 'orgToken')
+        self.product_token = config.get('DEFAULT', 'productToken')
+        self.baseline_project_token = config.get('DEFAULT', 'baselineProjectToken')
+        self.project_name = config.get('DEFAULT', 'projectName')
+        self.project_version = config.get('DEFAULT', 'projectVersion')
 
 
 class ArgumentsParser:
@@ -42,6 +45,9 @@ class ArgumentsParser:
         parser.add_argument("-k", required=False)
         parser.add_argument("-o", required=False)
         parser.add_argument("-p", required=False)
+        parser.add_argument("-b", required=False)
+        parser.add_argument("-n", required=False)
+        parser.add_argument("-v", required=False)
 
         argument = parser.parse_args()
         if argument.u:
@@ -52,6 +58,12 @@ class ArgumentsParser:
             self.org_token = argument.o
         if argument.p:
             self.product_token = argument.p
+        if argument.b:
+            self.baseline_project_token = argument.b
+        if argument.n:
+            self.project_name = argument.n
+        if argument.v:
+            self.project_version = argument.v
 
 
 def init_logger():
@@ -75,11 +87,10 @@ def init_logger():
 
 
 def main():
-
     print_header('WhiteSource - Ignore Future Alerts')
 
     args = sys.argv[1:]
-    if len(args) == 8:
+    if len(args) >= 8:
         config = ArgumentsParser()
     else:
         config = Configuration()
@@ -93,13 +104,32 @@ def main():
               token=config.org_token,
               timeout=300)
 
-    source_project, destination_project = get_source_and_destination_projects(conn, config)
+    # default for the source project token is a baseline_project_token provided by user
+    config_project_name = config.project_name
+    config_baseline_project_token = config.baseline_project_token
+    if config_baseline_project_token and config_project_name:
+        if config.project_version:
+            config_project_name = f"{config_project_name} - {config.project_version}"
+        try:
+            source_project_token = config_baseline_project_token
+            destination_projects = conn.get_scopes(product_token=config.product_token, name=config_project_name)
+        except Exception as err:
+            logging.error(err)
+            exit(1)
+        dest_project_token = destination_projects[0].get(TOKEN)
 
-    source_project_token = source_project.get(TOKEN)
-    logging.info('Fetching ignored alerts from the last project')
+    else:
+        try:
+            source_project, destination_project = get_source_and_destination_projects(conn, config)
+        except Exception as err:
+            logging.error(err)
+            exit(1)
+        source_project_token = source_project.get(TOKEN)
+        dest_project_token = destination_project.get(TOKEN)
+
+    logging.info('Fetching all ignored alerts from the source/baseline project')
     source_ignored_alerts_list = conn.get_alerts(token=source_project_token, ignored=True)
 
-    dest_project_token = destination_project.get(TOKEN)
     logging.info('Fetching all alerts from the new project')
     dest_all_alerts_list = conn.get_alerts(token=dest_project_token)
 
@@ -143,7 +173,7 @@ def get_source_and_destination_projects(conn, config):
     :param config:
     :return: the source is a project for pulling ignored alerts and
              destination is a project where the alerts will be ignored.
-             Two last projects of the product.
+             Two last projects of the certain product.
     """
     logging.debug('Getting all projects and sort them')
     all_projects = conn.get_projects(product_token=config.product_token)
@@ -183,6 +213,8 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn)
     :rtype: object
     """
     print_header('Ignore alerts in the new project')
+
+    response = None
     for key, value in lib_to_ignore_from_source_dict.items():
         if key in destination_alerts_dict.keys():
             value_dest = destination_alerts_dict.get(key)
@@ -191,12 +223,17 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn)
                                                   status="Ignored",
                                                   comments="automatically ignored by WS utility")
                 if "Successfully set the alert's status" not in response.values():
-                    logger.info(response)
+                    logger.error(response)
                     return
             except:
-                logger.info(response)
+                logger.error(response)
+                return
             print_to_log(key, value_dest)
-    logger.info('Ignoring alerts has successfully finished')
+
+    if response:
+        logger.info('Ignoring alerts has successfully finished')
+    else:
+        logger.info('There are no alerts to ignore')
 
 
 def print_to_log(key, value_dest):
@@ -205,7 +242,7 @@ def print_to_log(key, value_dest):
     :param key:
     :param value_dest:
     """
-    string_buffer = "{0} alert has been automatically ignored. Library: {1}".\
+    string_buffer = "{0} alert has been automatically ignored. Library: {1}". \
         format(key[0], value_dest.get('library').get('filename'))
     if key[0] == "SECURITY_VULNERABILITY":
         string_buffer += ", vulnerability:  {0}".format(key[1])
@@ -214,8 +251,3 @@ def print_to_log(key, value_dest):
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
