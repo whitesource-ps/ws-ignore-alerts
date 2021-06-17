@@ -10,6 +10,8 @@ from ws_sdk.web import WS
 LOG_DIR = 'logs'
 LOG_FILE_WITH_PATH = LOG_DIR + '/ws-ignore-alerts.log'
 TOKEN = "token"
+PRODUCT = "product"
+ORGANIZATION = "organization"
 
 logger = logging.getLogger()
 
@@ -29,9 +31,9 @@ class Configuration:
         self.user_key = config.get('DEFAULT', 'userKey')
         self.org_token = config.get('DEFAULT', 'orgToken')
         self.product_token = config.get('DEFAULT', 'productToken')
-        self.baseline_project_token = config.get('DEFAULT', 'baselineProjectToken')
-        self.project_name = config.get('DEFAULT', 'projectName')
-        self.project_version = config.get('DEFAULT', 'projectVersion')
+        self.baseline_project_token = config.get('DEFAULT', 'baselineProjectToken', fallback=False)
+        self.dest_project_name = config.get('DEFAULT', 'destProjectName', fallback=False)
+        self.dest_project_version = config.get('DEFAULT', 'destProjectVersion', fallback=False)
 
 
 class ArgumentsParser:
@@ -61,9 +63,9 @@ class ArgumentsParser:
         if argument.b:
             self.baseline_project_token = argument.b
         if argument.n:
-            self.project_name = argument.n
+            self.dest_project_name = argument.n
         if argument.v:
-            self.project_version = argument.v
+            self.dest_project_version = argument.v
 
 
 def init_logger():
@@ -101,22 +103,25 @@ def main():
 
     conn = WS(url=config.url,
               user_key=config.user_key,
-              token=config.org_token,
-              timeout=300)
+              token=config.product_token,
+              token_type=PRODUCT)
 
     # default for the source project token is a baseline_project_token provided by user
-    config_project_name = config.project_name
+    config_dest_project_name = config.dest_project_name
     config_baseline_project_token = config.baseline_project_token
-    if config_baseline_project_token and config_project_name:
-        if config.project_version:
-            config_project_name = f"{config_project_name} - {config.project_version}"
+    if config_baseline_project_token and config_dest_project_name:
+        if config.dest_project_version:
+            config_dest_project_name = f"{config_dest_project_name} - {config.dest_project_version}"
         try:
             source_project_token = config_baseline_project_token
-            destination_projects = conn.get_scopes(product_token=config.product_token, name=config_project_name)
-        except Exception as err:
-            logging.error(err)
+            dest_projects_by_project_name = conn.get_scopes(name=config_dest_project_name)
+        except Exception:
+            logging.exception("The destination project hasn't been found")
             exit(1)
-        dest_project_token = destination_projects[0].get(TOKEN)
+        if len(dest_projects_by_project_name) == 1:
+            dest_project_token = dest_projects_by_project_name[0].get(TOKEN)
+        else:
+            raise ProcessLookupError(f"There are more than one project with the same name {config_dest_project_name}")
 
     else:
         try:
@@ -145,7 +150,7 @@ def main():
                                                                                       'vulnerabilityName',
                                                                                       'libKeyUuid'))
 
-    ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn)
+    ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn, config)
 
 
 def print_header(hdr_txt: str):
@@ -176,11 +181,14 @@ def get_source_and_destination_projects(conn, config):
              Two last projects of the certain product.
     """
     logging.debug('Getting all projects and sort them')
-    all_projects = conn.get_projects(product_token=config.product_token)
-    all_projects.sort(key=lambda x: x['lastUpdatedDate'])
-    logging.debug('Find last (new) and penultimate projects')
-    source_project = all_projects[-2]
-    destination_project = all_projects[-1]
+    all_projects = conn.get_projects()
+    if len(all_projects) >= 2:
+        all_projects.sort(key=lambda x: x['lastUpdatedDate'])
+        logging.debug('Find last (new) and penultimate projects')
+        source_project = all_projects[-2]
+        destination_project = all_projects[-1]
+    else:
+        raise ProcessLookupError("There are no enough projects in the product. Should be minimum 2.")
 
     return source_project, destination_project
 
@@ -207,7 +215,7 @@ def get_libs_to_ignore_from_source_list(source_ignored_alerts_list):
     return libs_to_ignore_from_source_list
 
 
-def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn):
+def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn, config):
     """
 
     :rtype: object
@@ -219,6 +227,8 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn)
         if key in destination_alerts_dict.keys():
             value_dest = destination_alerts_dict.get(key)
             try:
+                conn.token = config.org_token
+                conn.token_type = ORGANIZATION
                 response = conn.set_alerts_status(alert_uuids=value_dest.get('alertUuid'),
                                                   status="Ignored",
                                                   comments="automatically ignored by WS utility")
