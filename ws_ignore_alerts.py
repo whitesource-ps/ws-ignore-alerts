@@ -6,12 +6,11 @@ import logging
 from configparser import ConfigParser
 from ws_sdk import ws_utilities
 from ws_sdk.web import WS
+from ws_sdk import ws_constants
 
 LOG_DIR = 'logs'
 LOG_FILE_WITH_PATH = LOG_DIR + '/ws-ignore-alerts.log'
 TOKEN = "token"
-PRODUCT = "product"
-ORGANIZATION = "organization"
 
 logger = logging.getLogger()
 
@@ -42,30 +41,18 @@ class ArgumentsParser:
 
         :return:
         """
-        parser = argparse.ArgumentParser(description="Description for my parser")
-        parser.add_argument("-u", required=False)
-        parser.add_argument("-k", required=False)
-        parser.add_argument("-o", required=False)
-        parser.add_argument("-p", required=False)
-        parser.add_argument("-b", required=False)
-        parser.add_argument("-n", required=False)
-        parser.add_argument("-v", required=False)
-
-        argument = parser.parse_args()
-        if argument.u:
-            self.url = argument.u
-        if argument.k:
-            self.user_key = argument.k
-        if argument.o:
-            self.org_token = argument.o
-        if argument.p:
-            self.product_token = argument.p
-        if argument.b:
-            self.baseline_project_token = argument.b
-        if argument.n:
-            self.dest_project_name = argument.n
-        if argument.v:
-            self.dest_project_version = argument.v
+        parser = argparse.ArgumentParser(description="Arguments parser")
+        parser.add_argument("-u", "--url", help="WS url", dest='url', required=False)
+        parser.add_argument("-k", "--userKey", help="WS User Key", dest='user_key', required=False)
+        parser.add_argument("-o", "--orgToken", help="WS Org Token", dest='org_token', required=False)
+        parser.add_argument("-p", "--productToken", help="WS Product Token", dest='product_token', required=False)
+        parser.add_argument("-b", "--baselineProjectToken", help="WS Baseline project token",
+                            dest='baseline_project_token', required=False)
+        parser.add_argument("-n", "--destProjectName", help="WS Destination Project Name",
+                            dest='dest_project_name', required=False)
+        parser.add_argument("-v", "--destProjectVersion", help="WS Destination Project Version",
+                            dest='dest_project_version', required=False)
+        self.args = parser.parse_args()
 
 
 def init_logger():
@@ -93,7 +80,8 @@ def main():
 
     args = sys.argv[1:]
     if len(args) >= 8:
-        config = ArgumentsParser()
+        parser = ArgumentsParser()
+        config = parser.args
     else:
         config = Configuration()
     creating_folder_and_log_file()
@@ -104,7 +92,7 @@ def main():
     conn = WS(url=config.url,
               user_key=config.user_key,
               token=config.product_token,
-              token_type=PRODUCT)
+              token_type=ws_constants.PRODUCT)
 
     # default for the source project token is a baseline_project_token provided by user
     config_dest_project_name = config.dest_project_name
@@ -228,7 +216,7 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn,
             value_dest = destination_alerts_dict.get(key)
             try:
                 conn.token = config.org_token
-                conn.token_type = ORGANIZATION
+                conn.token_type = ws_constants.ORGANIZATION
                 response = conn.set_alerts_status(alert_uuids=value_dest.get('alertUuid'),
                                                   status="Ignored",
                                                   comments="automatically ignored by WS utility")
