@@ -10,7 +10,7 @@
 according to the already ignored alerts in the baseline WS Project. After each WS scan a new WS Project will be created and
 once it is done the utility can be launched as part of the pipeline.
 As an example, there are two options for use:
-- using baseline project defined by the user - baselineProjectToken and projectName (projectVersion) are required parameters.
+- using baseline project defined by the user - baselineProjectToken and destProjectName (destProjectVersion) are required parameters.
 - using default baseline project which is the last updated project in the particular WS Product.
 The alerts will be pulled from the baseline project, and the same alerts will be ignored in the new project.
 
@@ -31,7 +31,7 @@ The alerts will be pulled from the baseline project, and the same alerts will be
 ### Execution
 From the command line:
 - `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken -b $baselineProjectToken -n 
-  $projectName -v $projectVersion` 
+  $destProjectName -v $destProjectVersion` 
 
 Using a config file:
 - `python ws_ignore_alerts.py`
