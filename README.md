@@ -59,9 +59,9 @@ for the installation and the execution (`pip3` and `python3` respectively)
 | DEFAULT       | baselineProjectToken | WhiteSource Project Token that has already ignored alerts. Can be    |  
 |               |                      | found under the 'Integrate' tab in your WhiteSource organization.    |
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | projectName          | The name of the new WhiteSource Project defined by the user.         |  
+| DEFAULT       | destProjectName      | The name of the new WhiteSource Project defined by the user.         |  
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | projectVersion       | The version of the new WhiteSource Project defined by the user.      |  
+| DEFAULT       | destProjectVersion   | The version of the new WhiteSource Project defined by the user.      |  
 ===============================================================================================================
 ```
 
