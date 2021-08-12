@@ -92,7 +92,8 @@ def main():
     conn = WS(url=config.url,
               user_key=config.user_key,
               token=config.product_token,
-              token_type=ws_constants.PRODUCT)
+              token_type=ws_constants.PRODUCT,
+              tool_details=("ps-ignore-alerts", "0.1.5"))
 
     # default for the source project token is a baseline_project_token provided by user
     config_dest_project_name = config.dest_project_name
