@@ -19,8 +19,8 @@ url = ''
 user_key = ''
 org_token = ''
 product_token = ''
-agent_name = "ps-ignore-alerts"
-agent_version = "0.1.6"
+AGENT_NAME = "ps-ignore-alerts"
+AGENT_VERSION = "0.1.6"
 
 
 class Configuration:
@@ -96,7 +96,7 @@ def main():
               user_key=config.user_key,
               token=config.product_token,
               token_type=ws_constants.PRODUCT,
-              tool_details=(agent_name, agent_version))
+              tool_details=(AGENT_NAME, AGENT_VERSION))
 
     # default for the source project token is a baseline_project_token provided by user
     config_dest_project_name = config.dest_project_name
