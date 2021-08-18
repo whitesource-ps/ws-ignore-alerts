@@ -6,13 +6,15 @@
 [![Python 3.6](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Blue_Python_3.6%2B_Shield_Badge.svg/86px-Blue_Python_3.6%2B_Shield_Badge.svg.png)](https://www.python.org/downloads/release/python-360/)
 
 # Ignore Future Alerts 
-**ws_ignore_alerts.py** is a utility for ignoring alerts in the newly created WS Project, which is a version of the same customer's product, 
-according to the already ignored alerts in the baseline WS Project. After each WS scan a new WS Project will be created and
-once it is done the utility can be launched as part of the pipeline.
-As an example, there are two options for use:
-- using baseline project defined by the user - baselineProjectToken and destProjectName (destProjectVersion) are required parameters.
-- using default baseline project which is the last updated project in the particular WS Product.
-The alerts will be pulled from the baseline project, and the same alerts will be ignored in the new project.
+**ws_ignore_alerts.py** is a utility for automated ignoring alerts in the newly created WS project, which is a version of the same customer's product,
+according to the previously ignored alerts in the baseline WS project. Once a new UA scan has finished and a new project has been created, 
+the utility can be launched as part of the pipeline for automated ignoring alerts.
+As an example, there are three options for use:
+- using baseline project token and destination project name defined by the user - baselineProjectToken and destProjectName (optional: destProjectVersion).
+- using baseline project token and destination project token defined by the user - baselineProjectToken and destProjectToken.
+- using default behaviour, without providing baseline and destination projects' data. In that case, the destination project is a recent project of the certain product 
+  and baseline project is one before the recent project of the same product.
+The ignored alerts will be pulled from the baseline project, and the same alerts will be ignored in the destination project.
 
 ### Supported Operating Systems
 - Linux (Bash): CentOS, Debian, Ubuntu, RedHat
@@ -31,7 +33,7 @@ The alerts will be pulled from the baseline project, and the same alerts will be
 ### Execution
 From the command line:
 - `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken -b $baselineProjectToken -n 
-  $destProjectName -v $destProjectVersion` 
+  $destProjectName -v $destProjectVersion -t $destProjectToken`
 
 Using a config file:
 - `python ws_ignore_alerts.py`
@@ -56,12 +58,14 @@ for the installation and the execution (`pip3` and `python3` respectively)
 | DEFAULT       | productToken         | WhiteSource Product Token. Can be found under the 'Integrate' tab    |  
 |               |                      | in your WhiteSource organization.                                    |
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | baselineProjectToken | WhiteSource Project Token that has already ignored alerts. Can be    |  
-|               |                      | found under the 'Integrate' tab in your WhiteSource organization.    |
+| DEFAULT       | baselineProjectToken | Token of the WhiteSource project the ignored alerts are pulled from. |  
+|               |                      | Can be found under the settings icon within a particular project.    |
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | destProjectName      | The name of the new WhiteSource Project defined by the user.         |  
+| DEFAULT       | destProjectName      | Name of the WhiteSource project where the alerts will be ignored.    |  
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | destProjectVersion   | The version of the new WhiteSource Project defined by the user.      |  
+| DEFAULT       | destProjectVersion   | Version of the WhiteSource project where the alerts will be ignored. |  
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | destProjectTokne     | Token of the WhiteSource project where the alerts will be ignored.   |  
 ===============================================================================================================
 ```
 
