@@ -37,6 +37,7 @@ class Configuration:
         self.baseline_project_token = config.get('DEFAULT', 'baselineProjectToken', fallback=False)
         self.dest_project_name = config.get('DEFAULT', 'destProjectName', fallback=False)
         self.dest_project_version = config.get('DEFAULT', 'destProjectVersion', fallback=False)
+        self.dest_project_token = config.get('DEFAULT', 'destProjectToken', fallback=False)
 
 
 class ArgumentsParser:
@@ -56,6 +57,8 @@ class ArgumentsParser:
                             dest='dest_project_name', required=False)
         parser.add_argument("-v", "--destProjectVersion", help="WS Destination Project Version",
                             dest='dest_project_version', required=False)
+        parser.add_argument("-t", "--destProjectToken", help="WS Destination Project Token",
+                            dest='dest_project_token', required=False)
         self.args = parser.parse_args()
 
 
@@ -83,7 +86,7 @@ def main():
     print_header('WhiteSource - Ignore Future Alerts')
 
     args = sys.argv[1:]
-    if len(args) >= 8:
+    if len(args) >= 12:
         parser = ArgumentsParser()
         config = parser.args
     else:
@@ -99,24 +102,35 @@ def main():
               token_type=ws_constants.PRODUCT,
               tool_details=(PS + AGENT_NAME, AGENT_VERSION))
 
-    # default for the source project token is a baseline_project_token provided by user
     config_dest_project_name = config.dest_project_name
     config_baseline_project_token = config.baseline_project_token
-    if config_baseline_project_token and config_dest_project_name:
+    # getting tokens when a destination project and a source/baseline projects are provided by the user
+    if config_baseline_project_token and config.dest_project_token:
+        source_project_token = config_baseline_project_token
+        dest_project_token = config.dest_project_token
+    # else looking for a destination project token by project name (version) that has been provided by the user
+    elif config_baseline_project_token and config_dest_project_name:
+        source_project_token = config_baseline_project_token
         if config.dest_project_version:
             config_dest_project_name = f"{config_dest_project_name} - {config.dest_project_version}"
         try:
-            source_project_token = config_baseline_project_token
             dest_projects_by_project_name = conn.get_scopes(name=config_dest_project_name)
-        except Exception:
-            logging.exception("The destination project hasn't been found")
+        except Exception as err:
+            logging.exception(err)
             exit(1)
         if len(dest_projects_by_project_name) == 1:
             dest_project_token = dest_projects_by_project_name[0].get(TOKEN)
+        elif len(dest_projects_by_project_name) == 0:
+            raise ProcessLookupError(f"Project {config_dest_project_name} hasn't been found in this product. "
+                                     f"Please check the provided destination project name and try again")
         else:
             raise ProcessLookupError(f"There are more than one project with the same name {config_dest_project_name}")
 
-    else:
+    # else if nothing is provided by the user getting both destination and source/baseline projects
+    # as a recent and one before the recent projects
+    elif config_baseline_project_token is None \
+            and config.dest_project_token is None \
+            and config_dest_project_name is None:
         try:
             source_project, destination_project = get_source_and_destination_projects(conn, config)
         except Exception as err:
@@ -125,10 +139,16 @@ def main():
         source_project_token = source_project.get(TOKEN)
         dest_project_token = destination_project.get(TOKEN)
 
-    logging.info('Fetching all ignored alerts from the source/baseline project')
+    else:
+        logging.exception(f"One or more parameters are missing in the config file. In the event when baseline "
+                          f"project is provided, a destination project token or destination project name (version)"
+                          f" should be provided as well.")
+        exit(1)
+
+    logging.info(f'Getting all ignored alerts from the source/baseline project (token={source_project_token})')
     source_ignored_alerts_list = conn.get_alerts(token=source_project_token, ignored=True)
 
-    logging.info('Fetching all alerts from the new project')
+    logging.info(f'Getting all alerts from the new project (token={dest_project_token})')
     dest_all_alerts_list = conn.get_alerts(token=dest_project_token)
 
     libs_to_ignore_from_source_list = get_libs_to_ignore_from_source_list(source_ignored_alerts_list)
@@ -169,15 +189,17 @@ def get_source_and_destination_projects(conn, config):
 
     :param conn:
     :param config:
-    :return: the source is a project for pulling ignored alerts and
-             destination is a project where the alerts will be ignored.
-             Two last projects of the certain product.
+    :return: the Source is a project the ignored alerts are pulled from and
+             the Destination is a project where the alerts will be ignored.
+             Default values:
+                - destination project is a recent project of the certain product
+                - source project is one before the recent (penultimate) project of the same product
     """
-    logging.debug('Getting all projects and sort them')
+    logging.info('Getting all projects and sort them')
     all_projects = conn.get_projects()
     if len(all_projects) >= 2:
         all_projects.sort(key=lambda x: x['lastUpdatedDate'])
-        logging.debug('Find last (new) and penultimate projects')
+        logging.info('Find both recent (new) and penultimate projects')
         source_project = all_projects[-2]
         destination_project = all_projects[-1]
     else:
@@ -228,7 +250,7 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn,
                 if "Successfully set the alert's status" not in response.values():
                     logger.error(response)
                     return
-            except:
+            except Exception:
                 logger.error(response)
                 return
             print_to_log(key, value_dest)
