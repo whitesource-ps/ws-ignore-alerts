@@ -116,6 +116,9 @@ def main():
             exit(1)
         if len(dest_projects_by_project_name) == 1:
             dest_project_token = dest_projects_by_project_name[0].get(TOKEN)
+        elif len(dest_projects_by_project_name) == 0:
+            raise ProcessLookupError(f"Project {config_dest_project_name} hasn't been found in this product. "
+                                     f"Please check the provided destination project name and try again")
         else:
             raise ProcessLookupError(f"There are more than one project with the same name {config_dest_project_name}")
 
