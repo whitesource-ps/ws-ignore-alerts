@@ -112,7 +112,7 @@ def main():
         try:
             dest_projects_by_project_name = conn.get_scopes(name=config_dest_project_name)
         except Exception as err:
-            logging.exception(f"{err}. Verify that the provided destination project name and version are correct.")
+            logging.exception(err)
             exit(1)
         if len(dest_projects_by_project_name) == 1:
             dest_project_token = dest_projects_by_project_name[0].get(TOKEN)
