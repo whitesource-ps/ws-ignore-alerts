@@ -1,12 +1,13 @@
 import argparse
+import logging
 import os
 import shutil
 import sys
-import logging
 from configparser import ConfigParser
+
+from ws_sdk import ws_constants
 from ws_sdk import ws_utilities
 from ws_sdk.web import WS
-from ws_sdk import ws_constants
 
 LOG_DIR = 'logs'
 LOG_FILE_WITH_PATH = LOG_DIR + '/ws-ignore-alerts.log'
@@ -18,6 +19,9 @@ url = ''
 user_key = ''
 org_token = ''
 product_token = ''
+PS = "ps-"
+AGENT_NAME = "ignore-alerts"
+AGENT_VERSION = "0.1.6"
 
 
 class Configuration:
@@ -96,7 +100,7 @@ def main():
               user_key=config.user_key,
               token=config.product_token,
               token_type=ws_constants.PRODUCT,
-              tool_details=("ps-ignore-alerts", "0.1.6"))
+              tool_details=(PS + AGENT_NAME, AGENT_VERSION))
 
     config_dest_project_name = config.dest_project_name
     config_baseline_project_token = config.baseline_project_token
