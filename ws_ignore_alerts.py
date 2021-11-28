@@ -147,9 +147,11 @@ def main():
 
     logging.info(f'Getting all ignored alerts from the source/baseline project (token={source_project_token})')
     source_ignored_alerts_list = conn.get_alerts(token=source_project_token, ignored=True)
+    logging.info(f'total: {len(source_ignored_alerts_list)}')
 
-    logging.info(f'Getting all alerts from the new project (token={dest_project_token})')
+    logging.info(f'Getting all alerts from the destination project (token={dest_project_token})')
     dest_all_alerts_list = conn.get_alerts(token=dest_project_token)
+    logging.info(f'total: {len(dest_all_alerts_list)}')
 
     libs_to_ignore_from_source_list = get_libs_to_ignore_from_source_list(source_ignored_alerts_list)
 
@@ -160,8 +162,8 @@ def main():
 
     lib_to_ignore_from_source_dict = ws_utilities.convert_dict_list_to_dict(lst=libs_to_ignore_from_source_list,
                                                                             key_desc=('type',
-                                                                                      'vulnerabilityName',
-                                                                                      'libKeyUuid'))
+                                                                                      'vulnerability_name',
+                                                                                      'lib_keyUuid'))
 
     ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn, config)
 
@@ -199,7 +201,7 @@ def get_source_and_destination_projects(conn, config):
     all_projects = conn.get_projects()
     if len(all_projects) >= 2:
         all_projects.sort(key=lambda x: x['lastUpdatedDate'])
-        logging.info('Find both recent (new) and penultimate projects')
+        logging.info('Find both destination and source projects')
         source_project = all_projects[-2]
         destination_project = all_projects[-1]
     else:
@@ -221,9 +223,10 @@ def get_libs_to_ignore_from_source_list(source_ignored_alerts_list):
         if source_alert_dict.get('vulnerability'):
             vulnerability_name = source_alert_dict.get('vulnerability').get('name')
         new_dict = {
-            'vulnerabilityName': vulnerability_name,
+            'vulnerability_name': vulnerability_name,
             'type': source_alert_dict.get('type'),
-            'libKeyUuid': source_alert_dict.get('library').get('keyUuid'),
+            'lib_keyUuid': source_alert_dict.get('library').get('keyUuid'),
+            'alert_comment': source_alert_dict.get('comments')
         }
         libs_to_ignore_from_source_list.append(new_dict)
 
@@ -235,18 +238,20 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn,
 
     :rtype: object
     """
-    print_header('Ignore alerts in the new project')
+    print_header('Ignore alerts in the destination project')
 
     response = None
     for key, value in lib_to_ignore_from_source_dict.items():
         if key in destination_alerts_dict.keys():
             value_dest = destination_alerts_dict.get(key)
+            value_source = lib_to_ignore_from_source_dict.get(key)
             try:
                 conn.token = config.org_token
                 conn.token_type = ws_constants.ORGANIZATION
                 response = conn.set_alerts_status(alert_uuids=value_dest.get('alertUuid'),
                                                   status="Ignored",
-                                                  comments="automatically ignored by WS utility")
+                                                  comments=f'{value_source.get("alert_comment")} '
+                                                           f'(automatically ignored by WS utility)')
                 if "Successfully set the alert's status" not in response.values():
                     logger.error(response)
                     return
