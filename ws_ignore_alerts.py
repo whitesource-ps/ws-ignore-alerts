@@ -114,7 +114,7 @@ def main():
         if config.dest_project_version:
             config_dest_project_name = f"{config_dest_project_name} - {config.dest_project_version}"
         try:
-            dest_projects_by_project_name = conn.get_scopes(name=config_dest_project_name)
+            dest_projects_by_project_name = conn.get_scopes(name=config_dest_project_name, scope_type="project")
         except Exception as err:
             logging.exception(err)
             exit(1)
@@ -255,8 +255,8 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn,
                 if "Successfully set the alert's status" not in response.values():
                     logger.error(response)
                     return
-            except Exception:
-                logger.error(response)
+            except Exception as err:
+                logging.exception(err)
                 return
             print_to_log(key, value_dest)
 
