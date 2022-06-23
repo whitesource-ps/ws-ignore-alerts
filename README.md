@@ -7,13 +7,13 @@
 
 # Ignore Future Alerts 
 **ws_ignore_alerts.py** is a utility for automated ignoring alerts in the newly created WS project, which is a version of the same customer's product,
-according to the previously ignored alerts in the baseline WS project. Once a new UA scan has finished and a new project has been created, 
+according to the previously ignored alerts in the baseline WS project. Once a new UA scan has finished, and a new project has been created, 
 the utility can be launched as part of the pipeline for automated ignoring alerts.
-As an example, there are three options for use:
-- using a baseline project token and destination project name defined by the user - baselineProjectToken and destProjectName (optional: destProjectVersion).
-- using a baseline project token and destination project token defined by the user - baselineProjectToken and destProjectToken.
-- using the default behaviour, without providing baseline and destination projects' data. In this case, the destination project is a recent project of the certain product 
-  and baseline project is one before the recent project of the same product.
+There are three options for use:
+- using a baseline project token and destination project name defined by the user - baselineProjectToken and destProjectName (optional: destProjectVersion). Might be different products.
+- using a baseline project token and destination project token defined by the user - baselineProjectToken and destProjectToken. Might be different products
+- using the default behavior, without providing baseline and destination projects' data. In this case, the destination project is a recent project of the certain product 
+  and baseline project is one before the recent project of the same product. Only works within a certain product.
 The ignored alerts will be pulled from the baseline project, and the same alerts will be ignored in the destination project.
 
 ### Supported Operating Systems
@@ -23,12 +23,7 @@ The ignored alerts will be pulled from the baseline project, and the same alerts
 ### Prerequisites
 - Python 3.5 or above
 
-### Deployment
-1. Download and unzip **ws_ignore_alerts.zip**.
-2. From the command line, navigate to the ws_ignore_alerts directory and install the package:  
-   `pip install -r requirements.txt`
-3. Edit the **params.config** file and update the relevant parameters (see the configuration parameters below) or 
-   use a cmd line for running.
+ 
 
 ### Execution
 From the command line:
