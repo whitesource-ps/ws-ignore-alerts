@@ -60,7 +60,9 @@ for the installation and the execution (`pip3` and `python3` respectively)
 ---------------------------------------------------------------------------------------------------------------
 | DEFAULT       | destProjectVersion   | Version of the WhiteSource project where the alerts will be ignored. |  
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | destProjectTokne     | Token of the WhiteSource project where the alerts will be ignored.   |  
+| DEFAULT       | destProjectTokne     | Token of the WhiteSource project where the alerts will be ignored.   | 
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | destProductTokne     | Token of the WhiteSource product where the alerts will be ignored.   | 
 ===============================================================================================================
 ```
 
