@@ -10,10 +10,9 @@
 according to the previously ignored alerts in the baseline WS project. Once a new UA scan has finished, and a new project has been created, 
 the utility can be launched as part of the pipeline for automated ignoring alerts.
 There are three options for use:
-- using a baseline project token and destination project name defined by the user - baselineProjectToken and destProjectName (optional: destProjectVersion). Might be different products.
-- using a baseline project token and destination project token defined by the user - baselineProjectToken and destProjectToken. Might be different products
-- using the default behavior, without providing baseline and destination projects' data. In this case, the destination project is a recent project of the certain product 
-  and baseline project is one before the recent project of the same product. Only works within a certain product.
+- using a baseline project token and destination project name defined by the user - baselineProjectToken and destProjectName (optional: destProjectVersion). Might work with different products.
+- using a baseline project token and destination project token defined by the user - baselineProjectToken and destProjectToken. Might work with different products.
+- using the default behavior, without providing baseline and destination projects' data. In this case, the destination project is a latest project of the certain product and baseline project is one before the latest project of the same product. Only works within a certain product.
 The ignored alerts will be pulled from the baseline project, and the same alerts will be ignored in the destination project.
 
 ### Supported Operating Systems
@@ -28,12 +27,12 @@ The ignored alerts will be pulled from the baseline project, and the same alerts
 ### Execution
 From the command line:
 - `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken -b $baselineProjectToken -n 
-  $destProjectName -v $destProjectVersion -t $destProjectToken`
+  $destProjectName -v $destProjectVersion -t $destProjectToken -d $destProductToken`
 
 Using a config file:
 - `python ws_ignore_alerts.py`
 
-**Note:** If more than one version of Python is installed on the target machine, use the appropriate executables
+**Note:** If more than one version of Python installed on the target machine, use the appropriate executables
 for the installation and the execution (`pip3` and `python3` respectively)
 
 ### Configuration Parameters
@@ -60,9 +59,9 @@ for the installation and the execution (`pip3` and `python3` respectively)
 ---------------------------------------------------------------------------------------------------------------
 | DEFAULT       | destProjectVersion   | Version of the WhiteSource project where the alerts will be ignored. |  
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | destProjectTokne     | Token of the WhiteSource project where the alerts will be ignored.   | 
+| DEFAULT       | destProjectToken     | Token of the WhiteSource project where the alerts will be ignored.   | 
 ---------------------------------------------------------------------------------------------------------------
-| DEFAULT       | destProductTokne     | Token of the WhiteSource product where the alerts will be ignored.   | 
+| DEFAULT       | destProductToken     | Token of the WhiteSource product where the alerts will be ignored.   | 
 ===============================================================================================================
 ```
 
