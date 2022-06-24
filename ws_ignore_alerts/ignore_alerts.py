@@ -11,10 +11,6 @@ from ws_ignore_alerts._version import __description__, __tool_name__, __version_
 LOG_DIR = 'logs'
 LOG_FILE_WITH_PATH = LOG_DIR + '/ws-ignore-alerts.log'
 TOKEN = 'token'
-PS = 'ps-'
-AGENT_NAME = 'ignore-alerts'
-AGENT_VERSION = '0.1.6'
-
 logger = logging.getLogger()
 
 url = None
@@ -27,7 +23,7 @@ class Configuration:
     def __init__(self):
         config = ConfigParser()
         config.optionxform = str
-        config.read('./config/params.config')
+        config.read('../params.config')
         # WS Settings
         self.url = config.get('DEFAULT', 'wsUrl')
         self.user_key = config.get('DEFAULT', 'userKey')
