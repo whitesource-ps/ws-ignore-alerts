@@ -31,7 +31,7 @@ The ignored alerts will be pulled from the baseline project, and the same alerts
 1. Download and unzip **ws-ignore-alerts.zip**
 2. Install requirements: `pip install -r requirements.txt`
 3. Configure the appropriate parameters either by using the command line or `params.config`.
-4. Execute: `python ignore_alerts.py <CONFIG_FILE>`
+4. Execute: `python ignore_alerts.py`
 
 ### Execution Examples
 From the command line:
