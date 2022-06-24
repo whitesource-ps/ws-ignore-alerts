@@ -19,3 +19,6 @@ target/
 
 # Excluded Files - Naming Convention
 local-env.*
+
+ws_ignore_alerts/__pycache__/
+ws_ignore_alerts/tests/__pycache__/
