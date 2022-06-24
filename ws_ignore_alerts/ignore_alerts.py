@@ -4,6 +4,8 @@ import os
 import shutil
 import sys
 from configparser import ConfigParser
+from dataclasses import dataclass
+
 from ws_sdk import ws_constants,ws_utilities, WS
 
 from ws_ignore_alerts._version import __description__, __tool_name__, __version__
@@ -19,29 +21,53 @@ org_token = None
 product_token = None
 
 
-class Configuration:
-    def __init__(self):
-        config = ConfigParser()
-        config.optionxform = str
-        config.read('../params.config')
-        # WS Settings
-        self.url = config.get('DEFAULT', 'wsUrl')
-        self.user_key = config.get('DEFAULT', 'userKey')
-        self.org_token = config.get('DEFAULT', 'orgToken')
-        self.product_token = config.get('DEFAULT', 'productToken')
-        self.baseline_project_token = config.get('DEFAULT', 'baselineProjectToken', fallback=False)
-        self.dest_project_name = config.get('DEFAULT', 'destProjectName', fallback=False)
-        self.dest_project_version = config.get('DEFAULT', 'destProjectVersion', fallback=False)
-        self.dest_project_token = config.get('DEFAULT', 'destProjectToken', fallback=False)
-        self.dest_product_token = config.get('DEFAULT', 'destProductToken', fallback=False)
+def parse_config():
+    @dataclass
+    class Config:
+        url: str
+        user_key: str
+        org_token: str
+        product_token: str
+        baseline_project_token: str
+        dest_project_name: str
+        dest_project_version: str
+        dest_project_token: str
+        dest_product_token: str
 
+    if len(sys.argv) < 3:
+        maybe_config_file = True
+    if len(sys.argv) == 1:
+        conf_file = "../params.config"
+    elif not sys.argv[1].startswith('-'):
+        conf_file = sys.argv[1]
+    else:
+        maybe_config_file = False
 
-class ArgumentsParser:
-    def __init__(self):
-        """
+    if maybe_config_file:                             # Covers no conf file or only conf file
+        if os.path.exists(conf_file):
+            logger.info(f"loading configuration from file: {conf_file}")
+            config = ConfigParser()
+            config.optionxform = str
+            # if os.path.exists(conf_file):
+            #     logger.info(f"loading configuration from file: {conf_file}")
+            config.read(conf_file)
+            conf = Config(
 
-        :return:
-        """
+                url = config.get('DEFAULT', 'wsUrl'),
+                user_key = config.get('DEFAULT', 'userKey'),
+                org_token = config.get('DEFAULT', 'orgToken'),
+                product_token = config.get('DEFAULT', 'productToken'),
+                baseline_project_token = config.get('DEFAULT', 'baselineProjectToken', fallback=False),
+                dest_project_name = config.get('DEFAULT', 'destProjectName', fallback=False),
+                dest_project_version = config.get('DEFAULT', 'destProjectVersion', fallback=False),
+                dest_project_token = config.get('DEFAULT', 'destProjectToken', fallback=False),
+                dest_product_token = config.get('DEFAULT', 'destProductToken', fallback=False)
+            )
+        else:
+            logger.error(f"No configuration file found at: {conf_file}")
+            raise FileNotFoundError
+    else:
+
         parser = argparse.ArgumentParser(description=__description__)
         parser.add_argument('-u', '--url', help='WS url', dest='url', required=False)
         parser.add_argument('-k', '--userKey', help='WS User Key', dest='user_key', required=False)
@@ -52,7 +78,9 @@ class ArgumentsParser:
         parser.add_argument('-v', '--destProjectVersion', help='WS Destination Project Version',dest='dest_project_version', required=False)
         parser.add_argument('-t', '--destProjectToken', help='WS Destination Project Token',dest='dest_project_token', required=False)
         parser.add_argument('-d', '--destProductToken', help='WS Destination Product Token',dest='dest_product_token', required=False)
-        self.args = parser.parse_args()
+        conf = parser.parse_args()
+
+    return conf
 
 
 def init_logger():
@@ -78,12 +106,10 @@ def init_logger():
 def main():
     print_header('WhiteSource - Ignore Future Alerts')
 
-    args = sys.argv[1:]
-    if len(args) >= 12:
-        parser = ArgumentsParser()
-        config = parser.args
-    else:
-        config = Configuration()
+    try:
+        config = parse_config()
+    except FileNotFoundError:
+        exit(-1)
     creating_folder_and_log_file()
     init_logger()
 
