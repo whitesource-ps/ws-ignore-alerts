@@ -33,6 +33,7 @@ def parse_config():
         dest_project_version: str
         dest_project_token: str
         dest_product_token: str
+        whitelist: str
 
     if len(sys.argv) < 3:
         maybe_config_file = True
@@ -61,13 +62,13 @@ def parse_config():
                 dest_project_name = config.get('DEFAULT', 'destProjectName', fallback=False),
                 dest_project_version = config.get('DEFAULT', 'destProjectVersion', fallback=False),
                 dest_project_token = config.get('DEFAULT', 'destProjectToken', fallback=False),
-                dest_product_token = config.get('DEFAULT', 'destProductToken', fallback=False)
+                dest_product_token = config.get('DEFAULT', 'destProductToken', fallback=False),
+                whitelist = config.get('DEFAULT', 'whitelist', fallback=False)
             )
         else:
             logger.error(f"No configuration file found at: {conf_file}")
             raise FileNotFoundError
     else:
-
         parser = argparse.ArgumentParser(description=__description__)
         parser.add_argument('-u', '--url', help='WS url', dest='url', required=False)
         parser.add_argument('-k', '--userKey', help='WS User Key', dest='user_key', required=False)
@@ -78,6 +79,7 @@ def parse_config():
         parser.add_argument('-v', '--destProjectVersion', help='WS Destination Project Version',dest='dest_project_version', required=False)
         parser.add_argument('-t', '--destProjectToken', help='WS Destination Project Token',dest='dest_project_token', required=False)
         parser.add_argument('-d', '--destProductToken', help='WS Destination Product Token',dest='dest_product_token', required=False)
+        parser.add_argument('-w', '--whitelist', help='CVE white list file',dest='whitelist', required=False)
         conf = parser.parse_args()
 
     return conf
@@ -105,6 +107,7 @@ def init_logger():
 
 def main():
     print_header('WhiteSource - Ignore Future Alerts')
+    global cve_whitelist
 
     try:
         config = parse_config()
@@ -114,6 +117,14 @@ def main():
     init_logger()
 
     logger.info('Starting')
+    cve_whitelist = []
+    if config.whitelist:
+        try:
+            with open(config.whitelist, 'r') as file:
+                cve_whitelist = [line.strip() for line in file.readlines()]
+        except FileNotFoundError:
+            #logger.error(f"File '{config.whitelist}' not found.")
+            cve_whitelist = config.whitelist.split(",")
 
     conn = WS(url=config.url,
               user_key=config.user_key,
@@ -263,6 +274,23 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn,
     print_header('Ignore alerts in the destination project')
 
     response = None
+    exist_in_whitelist = [tup for tup in destination_alerts_dict if tup[1] in cve_whitelist]
+    for value in exist_in_whitelist:
+        try:
+            conn.token = config.org_token
+            conn.token_type = ws_constants.ORGANIZATION
+            response = conn.set_alerts_status(alert_uuids=value[2],
+                                              status="Ignored",
+                                              comments='The CVE from white list '
+                                                       '(automatically ignored by WS utility)')
+            if "Successfully set the alert's status" not in response.values():
+                logger.error(response)
+                return
+        except Exception as err:
+            logging.exception(err)
+            return
+        logger.info(f"Alert for vulnerability {value[1]} has been automatically ignored.")
+
     for key, value in lib_to_ignore_from_source_dict.items():
         if key in destination_alerts_dict.keys():
             value_dest = destination_alerts_dict.get(key)
