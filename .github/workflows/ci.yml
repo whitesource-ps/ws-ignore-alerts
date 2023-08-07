@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: ['3.8', '3.9', '3.10']
 
     steps:
       - name: Set Environment Variables
@@ -82,20 +82,20 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
           
-      - name: confluence-markdown-sync
-        uses: cupcakearmy/confluence-markdown-sync@v1     
-        with: 
-          from: README.md
-          to: 2319614030
-          cloud: whitesource
-          user: ${{ secrets.CONFLUENCE_USER }}
-          token: ${{ secrets.CONFLUENCE_TOKEN }}
-      - name: confluence-markdown-sync
-        uses: cupcakearmy/confluence-markdown-sync@v1     
-        with: 
-          from: README.md
-          to: 2071789581
-          cloud: whitesource
-          user: ${{ secrets.CONFLUENCE_USER }}
-          token: ${{ secrets.CONFLUENCE_TOKEN }}         
+      # - name: confluence-markdown-sync
+      #   uses: cupcakearmy/confluence-markdown-sync@v1     
+      #   with: 
+      #     from: README.md
+      #     to: 2319614030
+      #     cloud: whitesource
+      #     user: ${{ secrets.CONFLUENCE_USER }}
+      #     token: ${{ secrets.CONFLUENCE_TOKEN }}
+      # - name: confluence-markdown-sync
+      #   uses: cupcakearmy/confluence-markdown-sync@v1     
+      #   with: 
+      #     from: README.md
+      #     to: 2071789581
+      #     cloud: whitesource
+      #     user: ${{ secrets.CONFLUENCE_USER }}
+      #     token: ${{ secrets.CONFLUENCE_TOKEN }}         
 
