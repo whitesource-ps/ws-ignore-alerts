@@ -20,7 +20,7 @@ The ignored alerts will be pulled from the baseline project, and the same alerts
 - Windows (PowerShell): 10, 2012, 2016
 
 ### Prerequisites
-- Python 3.7 or above
+- Python 3.7 or above ([additional prerequisites](https://wiki.python.org/moin/WindowsCompilers) might be required when using Microsoft Windows)
 
 ## Installation and Execution from PyPi:
 1. Install by executing: `pip install ws-ignore-alerts`
