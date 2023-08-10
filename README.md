@@ -36,7 +36,10 @@ The ignored alerts will be pulled from the baseline project, and the same alerts
 ### Execution Examples
 From the command line:
 - `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken -b $baselineProjectToken -n 
-  $destProjectName -v $destProjectVersion -t $destProjectToken -d $destProductToken`
+  $destProjectName -v $destProjectVersion -t $destProjectToken -d $destProductToken -w whitelist.txt`
+or
+- `python ws_ignore_alerts.py -u $wsUrl -k $userKey -o $orgToken -p $productToken -b $baselineProjectToken -n 
+  $destProjectName -v $destProjectVersion -t $destProjectToken -d $destProductToken -w CVE-xxxx-yyyy,CVE-zzzz-tttt`
 
 Using a config file:
 - `python ws_ignore_alerts.py`
@@ -71,8 +74,14 @@ for the installation and the execution (`pip3` and `python3` respectively)
 | DEFAULT       | destProjectToken     | Token of the WhiteSource project where the alerts will be ignored.   | 
 ---------------------------------------------------------------------------------------------------------------
 | DEFAULT       | destProductToken     | Token of the WhiteSource product where the alerts will be ignored.   | 
+---------------------------------------------------------------------------------------------------------------
+| DEFAULT       | whitelist            | File with list of CVEs or list of CVEs divided by comma. *           | 
 ===============================================================================================================
 ```
+'* The file should contain the list of CVEs like this:  
+CVE-xxxx-yyyy  
+CVE-zzzz-mmmm  
+CVE-uuuu-nnnn
 
 ### Author
 WhiteSource Software ©
