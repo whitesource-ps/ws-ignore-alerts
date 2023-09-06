@@ -181,9 +181,17 @@ def main():
     logging.info(f'total: {len(source_ignored_alerts_list)}')
 
     logging.info(f'Getting all alerts from the destination project (token={dest_project_token})')
+    try:
+        used_alerts_type = list({item["type"] for item in source_ignored_alerts_list})
+    except:
+        used_alerts_type = []
     if config.dest_product_token:
         conn.token = config.dest_product_token
-    dest_all_alerts_list = conn.get_alerts(token=dest_project_token)
+
+    dest_all_alerts_list = []
+    for alert_type_ in used_alerts_type:
+        dest_all_alerts_list.extend(conn.get_alerts(token=dest_project_token, alert_type=alert_type_))
+
     logging.info(f'total: {len(dest_all_alerts_list)}')
 
     libs_to_ignore_from_source_list = get_libs_to_ignore_from_source_list(source_ignored_alerts_list)
@@ -274,7 +282,10 @@ def ignore_alerts(lib_to_ignore_from_source_dict, destination_alerts_dict, conn,
     print_header('Ignore alerts in the destination project')
 
     response = None
-    exist_in_whitelist = [tup for tup in destination_alerts_dict if tup[1] in cve_whitelist]
+    try:
+        exist_in_whitelist = [tup for tup in destination_alerts_dict if tup[1] in cve_whitelist]
+    except:
+        exist_in_whitelist = []
     for value in exist_in_whitelist:
         try:
             conn.token = config.org_token
