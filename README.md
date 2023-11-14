@@ -83,5 +83,14 @@ CVE-xxxx-yyyy
 CVE-zzzz-mmmm  
 CVE-uuuu-nnnn
 
+## Failing a build after running the utility
+You can utilize the Mend API to fail a build after running the ws-ignore-alerts utility. The following API will provide all of the policy violations for the new project: [Get Project Security Alerts](https://docs.mend.io/bundle/mend-api-2-0/page/index.html#tag/Alerts-Project/operation/getSecurityVulnerabilityAlerts)
+
+### Example Execution
+- `export login=$(curl -X POST https://api-<mendURL>/api/v2.0/login -H "Content-Type: application/json" -d "{ \"email\": \"<ServiceUserEmail>\", \"orgToken\": \"<OrgToken>\", \"userKey\": \"<ServiceUserKey\" }")`
+- `curl -s -H "Authorization: Bearer  $(jq -r  '.retVal.jwtToken' <<< "${login}")" 'https://api-<mendURL>/api/v2.0/<DestProjectToken>/alerts/legal?pageSize=50&page=0&search=type:equals:POLICY_VIOLATIONS' | jq -r .additionalData.totalItems`
+
+If additionalItems returns a value > 0 you can exit the build
+
 ### Author
 WhiteSource Software ©
