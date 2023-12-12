@@ -1,2 +1,2 @@
-configparser~=5.0.1
-ws-sdk~=23.8.3
+configparser~=6.0.0
+ws-sdk~=23.12.1
