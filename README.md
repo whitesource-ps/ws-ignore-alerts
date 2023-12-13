@@ -1,3 +1,4 @@
+> ⚠️ This tool has moved to a new home, please see the following repository in the Mend Toolkit for the latest version: [Ignore Alerts](https://github.com/mend-toolkit/mend-ignore-alerts)
 ![Logo](https://whitesource-resources.s3.amazonaws.com/ws-sig-images/Whitesource_Logo_178x44.png)  
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
